@@ -65,12 +65,13 @@ public class TCPSenderService extends IntentService implements SensorEventListen
     private float currentYAcc;
     private float currentZAcc;
 
+    private double currentLong;
+    private double currentLat;
+
 
     // Location variables
     private LocationManager locationManager;
     private LocationListener locationListener;
-
-    private Location currentLocation;
 
 
     @Override
@@ -83,6 +84,7 @@ public class TCPSenderService extends IntentService implements SensorEventListen
             // Initialize the location services
             initLocation();
 
+            // Temporary fix here
             sdata = new SensorData();
 
             // Update the SensorData object
@@ -94,12 +96,12 @@ public class TCPSenderService extends IntentService implements SensorEventListen
                         "XAcc: " + currentXAcc + "\n" +
                         "YAcc: " + currentYAcc + "\n" +
                         "ZAcc: " + currentZAcc + "\n" +
-                        "Longitude: " + sdata.currentLong + "\n" +
-                        "Latitude: " + sdata.currentLat + "\n";
+                        "Longitude: " + currentLong + "\n" +
+                        "Latitude: " + currentLat + "\n";
 
                 Log.e("MrSensor", out);
 
-                SystemClock.sleep(60000);
+                SystemClock.sleep(1000);
             }
             //this.stopSelf();
 
@@ -156,8 +158,8 @@ public class TCPSenderService extends IntentService implements SensorEventListen
         sdata.currentXAcc = currentXAcc;
         sdata.currentYAcc = currentYAcc;
         sdata.currentZAcc = currentZAcc;
-        sdata.currentLong = currentLocation.getLongitude();
-        sdata.currentLat = currentLocation.getLatitude();
+        sdata.currentLong = currentLong;
+        sdata.currentLat = currentLat;
 
     }
 
@@ -169,7 +171,9 @@ public class TCPSenderService extends IntentService implements SensorEventListen
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                currentLocation = location;
+                currentLong = location.getLongitude();
+                currentLat = location.getLatitude();
+
                 Log.e("MrSensor", "location assigned");
             }
 
@@ -187,14 +191,22 @@ public class TCPSenderService extends IntentService implements SensorEventListen
             }
         };
 
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.e("MrSensor", "Service: Location permission check failed");
             this.stopSelf();
             return;
         }
-
+        Log.e("MrSensor", "ACTIVATING LOCATION SERVICES");
+        Log.e("MrSensor", "ACTIVATING LOCATION SERVICES");
+        Log.e("MrSensor", "ACTIVATING LOCATION SERVICES");
+        Log.e("MrSensor", "ACTIVATING LOCATION SERVICES");
+        Log.e("MrSensor", "ACTIVATING LOCATION SERVICES");
         locationManager.requestLocationUpdates("network", 5000, 0, locationListener);
+        Log.e("MrSensor", "CALL RETURNED");
+        Log.e("MrSensor", "CALL RETURNED");
+        Log.e("MrSensor", "CALL RETURNED");
+        Log.e("MrSensor", "CALL RETURNED");
+
 
     }
 
