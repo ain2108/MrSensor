@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">MrSensor</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
+    <string name="start_light_button">Start</string>
+    <string name="prox_title">Prox</string>
+    <string name="light_title">Light</string>
+    <string name="display_light">n/a</string>
+    <string name="display_prox">n/a</string>
+    <string name="x_title">x</string>
+    <string name="y_title">y</string>
+    <string name="z_title">z</string>
+    <string name="display_x">n/a</string>
+    <string name="display_y">n/a</string>
+    <string name="display_z">n/a</string>
+    <string name="title_long">Longitude</string>
+    <string name="title_lat">Latitude</string>
+    <string name="display_long">n/a</string>
+    <string name="display_lat">n/a</string>
+</resources>
