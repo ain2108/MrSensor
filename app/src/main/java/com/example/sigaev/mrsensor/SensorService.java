@@ -27,6 +27,12 @@ import java.net.Socket;
 
 public class SensorService extends Service implements SensorEventListener {
 
+    private final String TAG = "MrSensorService";
+    private final String SERVER_IP_TAG = "SERVER_IP";
+    private final String SERVER_PORT_TAG = "SERVER_PORT";
+    public final String SERVICE_ERR_TAG = "SERVICE_ERR";
+
+
     private LocationListener listener;
     private LocationManager locationManager;
 
@@ -34,8 +40,8 @@ public class SensorService extends Service implements SensorEventListener {
     private double lati;
 
     // Socket variables
-    String serverIP = "209.2.233.234";
-    private int PORT = 34000;
+    String serverIP;
+    private int serverPORT;
     private Socket sock;
 
     // Sensor variables
@@ -54,6 +60,8 @@ public class SensorService extends Service implements SensorEventListener {
     Thread toServerThread;
     private boolean running;
 
+
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -62,12 +70,6 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onCreate() {
-
-        initSensors();
-
-        initLocation();
-
-        moveToForward();
 
     }
 
@@ -79,7 +81,7 @@ public class SensorService extends Service implements SensorEventListener {
                 notificationIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.flower)
                 .setContentTitle("MrSensor")
                 .setContentText("Sending coordinates")
                 .setContentIntent(pendingIntent).build();
@@ -90,8 +92,27 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startID){
+
+        configure(intent);
+
+        initSensors();
+
+        initLocation();
+
+        moveToForward();
+
         startSending();
+
         return START_STICKY;
+    }
+
+    public void configure(Intent intent){
+
+        serverIP = intent.getStringExtra(SERVER_IP_TAG);
+        String tempPort = intent.getStringExtra(SERVER_PORT_TAG);
+        serverPORT = Integer.parseInt(tempPort);
+        Log.e(TAG, "Starting service to " + serverIP + " on port " + serverPORT);
+
     }
 
     public void startSending(){
@@ -108,15 +129,19 @@ public class SensorService extends Service implements SensorEventListener {
                             "ZAcc: " + currentZAcc + "\n" +
                             "Longitude: " + longi + "\n" +
                             "Latitude: " + lati + "\n";
-                    Log.e("MrSensor", out);
+                    Log.e(TAG, out);
 
                     try {
-                        sock = new Socket("192.168.1.151", 2511);
+                        sock = new Socket(serverIP, serverPORT);
                         ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
                         oos.writeObject(out);
                         oos.flush();
                     } catch (IOException e) {
-                        Log.e("MrSensor", "socket failed to open");
+                        Log.e(TAG, "socket failed to open");
+                        Intent i = new Intent("service_status_update");
+                        i.putExtra(SERVICE_ERR_TAG, "ERROR: Could not connect to server");
+                        sendBroadcast(i);
+                        SensorService.this.stopSelf();
                     }
 
                     SystemClock.sleep(10000);
@@ -131,32 +156,21 @@ public class SensorService extends Service implements SensorEventListener {
 
     }
 
-
-
     public void initLocation(){
 
         listener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                Intent i = new Intent("location_update");
-                i.putExtra("coordinates",location.getLongitude()+" "+location.getLatitude());
-                sendBroadcast(i);
-
                 longi = location.getLongitude();
                 lati = location.getLatitude();
-
-                Log.e("MrSensor", longi + " " + lati);
+                Log.e(TAG, longi + " " + lati);
             }
 
             @Override
-            public void onStatusChanged(String s, int i, Bundle bundle) {
-
-            }
+            public void onStatusChanged(String s, int i, Bundle bundle) {}
 
             @Override
-            public void onProviderEnabled(String s) {
-
-            }
+            public void onProviderEnabled(String s) {}
 
             @Override
             public void onProviderDisabled(String s) {
@@ -173,12 +187,6 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
 
-
-
-
-
-
-
     private void initSensors(){
         // Initialize the sensor
         sensorManager = (SensorManager)this.getSystemService(SENSOR_SERVICE);
@@ -190,9 +198,9 @@ public class SensorService extends Service implements SensorEventListener {
         // Check if sensor was found
         if(lightSensor != null){
             sensorManager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            Log.e("MrSensor", "Service: Light listener registered");
+            Log.e(TAG, "Light listener registered");
         }else{
-            Log.e("MrSensor", "Service: LIGHT Sensor not found");
+            Log.e(TAG, "LIGHT Sensor not found");
             this.stopSelf();
         }
 
@@ -202,18 +210,18 @@ public class SensorService extends Service implements SensorEventListener {
 
         if(proxSensor != null){
             sensorManager.registerListener(this, proxSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            Log.e("MrSensor", "Service: Proximity listener registered");
+            Log.e(TAG, "Proximity listener registered");
         }else{
-            Log.e("MrSensor", "Service: PROXIMITY Sensor not found");
+            Log.e(TAG, "Sensor not found");
             this.stopSelf();
         }
 
         accSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         if(accSensor != null){
             sensorManager.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
-            Log.e("MrSensor", "Service: Acceleration listener registered");
+            Log.e("MrSensor", "Acceleration listener registered");
         }else{
-            Log.e("MrSensor", "Service: ACCELERATION Sensor not found");
+            Log.e("MrSensor", "ACCELERATION Sensor not found");
             this.stopSelf();
         }
     }
@@ -249,7 +257,7 @@ public class SensorService extends Service implements SensorEventListener {
 
         stopForeground(true);
 
-        Log.e("MrSensor", "Service stopped");
+        Log.e(TAG, "Service stopped");
     }
 
 
