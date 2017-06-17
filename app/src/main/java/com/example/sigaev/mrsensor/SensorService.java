@@ -1,5 +1,7 @@
 package com.example.sigaev.mrsensor;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -15,13 +17,14 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 
-/**
- * Created by filipp on 6/16/2016.
- */
 public class SensorService extends Service implements SensorEventListener {
 
     private LocationListener listener;
@@ -29,7 +32,6 @@ public class SensorService extends Service implements SensorEventListener {
 
     private double longi;
     private double lati;
-
 
     // Socket variables
     String serverIP = "209.2.233.234";
@@ -49,6 +51,9 @@ public class SensorService extends Service implements SensorEventListener {
     private float currentYAcc;
     private float currentZAcc;
 
+    Thread toServerThread;
+    private boolean running;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -59,8 +64,29 @@ public class SensorService extends Service implements SensorEventListener {
     public void onCreate() {
 
         initSensors();
+
         initLocation();
+
+        moveToForward();
+
     }
+
+    public void moveToForward(){
+
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("MrSensor")
+                .setContentText("Sending coordinates")
+                .setContentIntent(pendingIntent).build();
+
+        startForeground(1337, notification);
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startID){
@@ -74,7 +100,7 @@ public class SensorService extends Service implements SensorEventListener {
             @Override
             public void run() {
 
-                while(true){
+                while(running){
                     String out = "Lux: " + currentLux + "\n" +
                             "Prox: " + currentProx + "\n" +
                             "XAcc: " + currentXAcc + "\n" +
@@ -84,12 +110,23 @@ public class SensorService extends Service implements SensorEventListener {
                             "Latitude: " + lati + "\n";
                     Log.e("MrSensor", out);
 
-                    SystemClock.sleep(1000);
+                    try {
+                        sock = new Socket("192.168.1.151", 2511);
+                        ObjectOutputStream oos = new ObjectOutputStream(sock.getOutputStream());
+                        oos.writeObject(out);
+                        oos.flush();
+                    } catch (IOException e) {
+                        Log.e("MrSensor", "socket failed to open");
+                    }
+
+                    SystemClock.sleep(10000);
                 }
 
             }
         };
-        Thread toServerThread = new Thread(toServerRunner);
+
+        running = true;
+        toServerThread = new Thread(toServerRunner);
         toServerThread.start();
 
     }
@@ -207,6 +244,26 @@ public class SensorService extends Service implements SensorEventListener {
             //noinspection MissingPermission
             locationManager.removeUpdates(listener);
         }
+
+        running = false;
+
+        stopForeground(true);
+
+        Log.e("MrSensor", "Service stopped");
     }
+
+
+    // <><><><><><><><><><><><><><><> LOCAL CLASSES <><><><><><><><><><><><><><><><><><><>
+    // The serializable container for sensor data
+    private class SensorData implements Serializable {
+        private float currentLux;
+        private float currentProx;
+        private float currentXAcc;
+        private float currentYAcc;
+        private float currentZAcc;
+        private double currentLong;
+        private double currentLat;
+    }
+
 
 }

@@ -29,7 +29,7 @@
         app:layout_constraintTop_toBottomOf="@+id/yView" />
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/startButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="226dp"
@@ -158,5 +158,16 @@
         android:text="@string/title_lat"
         app:layout_constraintLeft_toLeftOf="@+id/titleLat"
         app:layout_constraintTop_toBottomOf="@+id/titleLat" />
+
+    <Button
+        android:id="@+id/stopButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="31dp"
+        android:layout_marginTop="29dp"
+        android:onClick="stopService"
+        android:text="@string/stop_service_button"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

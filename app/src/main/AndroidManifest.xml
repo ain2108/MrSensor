@@ -28,9 +28,6 @@
         </activity>
 
         <service
-            android:name=".TCPSenderService"
-            android:exported="false" />
-        <service
             android:name=".SensorService"
             android:enabled="true"
             android:exported="false"></service>

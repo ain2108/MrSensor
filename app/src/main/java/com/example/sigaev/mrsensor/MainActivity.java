@@ -34,6 +34,8 @@ import java.net.*;
 
 public class MainActivity extends AppCompatActivity {
 
+    private boolean serviceRunning;
+
     public static final String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
 
     @Override
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        serviceRunning = false;
 
         startLocationService();
 
@@ -100,8 +103,19 @@ public class MainActivity extends AppCompatActivity {
 
     /** Function starts the service */
     public void startService(View view){
-        Intent startSendingIntent = new Intent(this,  SensorService.class);
-        this.startService(startSendingIntent);
+        if(!serviceRunning) {
+            Intent startSendingIntent = new Intent(this, SensorService.class);
+            this.startService(startSendingIntent);
+            serviceRunning = true;
+        }
+    }
+
+    public void stopService(View view){
+        if(serviceRunning) {
+            Intent stopSendingIntent = new Intent(this, SensorService.class);
+            this.stopService(stopSendingIntent);
+            serviceRunning = false;
+        }
     }
 
 

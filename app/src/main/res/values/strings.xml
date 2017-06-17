@@ -17,4 +17,5 @@
     <string name="title_lat">Latitude</string>
     <string name="display_long">n/a</string>
     <string name="display_lat">n/a</string>
+    <string name="stop_service_button">Stop</string>
 </resources>
